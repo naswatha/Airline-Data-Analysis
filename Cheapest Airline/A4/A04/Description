@@ -1,0 +1,10 @@
+    A4 - Regression. The price of a ticket depends, in part, on the fuel consumed, figuring out which airline is cheapest requires a little bit of work. Write a MapReduce job that ranks carriers and plots the evolution of prices of the least expensive one.
+
+    Fine Print: 
+(0) Group assignment, two students. 
+(1) Take as input "-time=N" where N is a natural number representing scheduled flight minutes.  
+(2) For each year and each carrier, estimate the intercept and the slope of a simple linear regression using the scheduled flight time to explain average ticket prices. For a given year, compare carriers at N by computing intercept+slope*N. The least expensive carrier is the carrier with lowest N for the most years. 
+(3)  Plot, for each week of the entire dataset, the median price of the least expensive carrier.  
+(4) The reference solution is 300 LOC of Java with two MR jobs pipelined. 
+(5) Use the full airline dataset form s3://mrclassvitek/data -- it contains 337 files! 
+(6) Produce a report that discusses your results and includes graphs for N=1 and N=200.

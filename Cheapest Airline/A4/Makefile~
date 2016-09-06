@@ -1,0 +1,183 @@
+HADOOP = hadoop
+HDFS   = hdfs
+YARN   = yarn
+#provide your folder location where input files with 10,20 and 25 is present
+INPUT10 = (/home/naveenaswa/Desktop/A3/input10)
+INPUT20 = (/home/naveenaswa/Desktop/A3/input20)
+INPUT25 = (/home/naveenaswa/Desktop/A3/input25)
+APP = BenchMarkPseudo.jar
+CLUSTER_NAME = BenchMark
+MEAN = Mean
+MEDIAN = Median
+FAST_MEDIAN = FastMedian
+
+
+#Enter S3 values here
+#input folder with 10 files
+BUKET_INPUT10 = s3://..
+#input folder with 20 files
+BUKET_INPUT20 = s3://..
+#input folder with 25 files
+BUKET_INPUT25 = s3://..
+
+#output folder for 10 files
+BUCKET_OUTPUT10 =  s3://..
+#output folder for 20 files
+BUCKET_OUTPUT20 =  s3://
+#output folder for 25 files
+BUCKET_OUTPUT25 =  s3://
+#place the jar
+BUCKET_JAR =  s3://northeasternnaveenmr
+# place the cluster id for further execution
+CLUSTER_ID = cluster_id
+#log path in S3
+LOGS = s3://..
+
+format: 
+	hdfs namenode -format
+
+hstart:
+	start-dfs.sh
+	start-yarn.sh
+	mr-jobhistory-daemon.sh start historyserver
+
+
+hstop:
+	mr-jobhistory-daemon.sh stop historyserver 
+	stop-yarn.sh
+	stop-dfs.sh
+
+
+#Remove all the input files if any in the hadoop filesystem
+#below command will create folder with 10,20 and 25 files.
+
+moveinput:
+	$(HADOOP) fs -mkdir -p /user/airline/
+
+moveinput10:
+	$(HADOOP) fs -put $(INPUT10) /user/airline
+
+moveinput20:
+	$(HADOOP) fs -put $(INPUT20) /user/airline
+
+moveinput25:
+	$(HADOOP) fs -put /home/naveenaswa/Desktop/A3/aswathanaraynana_hu_A3/all /user/airline
+
+
+pseudomean:
+	$(HADOOP) jar $(APP) /user/airline/input10 /user/airline/outputMean10 $(MEAN)
+	$(HDFS) dfs -get /user/airline/outputMean10 outputMean10
+	$(HADOOP) jar $(APP) /user/airline/input20 /user/airline/outputMean20 $(MEAN)
+	$(HDFS) dfs -get /user/airline/outputMean20 outputMean20
+	$(HADOOP) jar $(APP) /user/airline/input25 /user/airline/outputMean25 $(MEAN)
+	$(HDFS) dfs -get /user/airline/outputMean25 outputMean25
+
+pseudomedian:
+	$(HADOOP) jar $(APP) /user/airline/input10 /user/airline/outputMedian10 $(MEDIAN)
+	$(HDFS) dfs -get /user/airline/outputMedian10 outputMedian10
+	$(HADOOP) jar $(APP) /user/airline/input20 /user/airline/outputMedian20 $(MEDIAN)
+	$(HDFS) dfs -get /user/airline/outputMedian20 outputMedian20
+	$(HADOOP) jar $(APP) /user/airline/input25 /user/airline/outputMedian25 $(MEDIAN)
+	$(HDFS) dfs -get /user/airline/outputMedian25 outputMedian25
+
+pseudofmedian:
+	$(HADOOP) jar $(APP) /user/airline/input10 /user/airline/outputFastMedian10 $(FAST_MEDIAN)
+	$(HDFS) dfs -get /user/airline/outputFastMedian10 outputFastMedian10
+	$(HADOOP) jar $(APP) /user/airline/input20 /user/airline/outputFastMedian20 $(FAST_MEDIAN)
+	$(HDFS) dfs -get /user/airline/outputFastMedian20 outputFastMedian20
+	$(HADOOP) jar $(APP) /user/airline/input25 /user/airline/outputFastMedian25 $(FAST_MEDIAN)
+	$(HDFS) dfs -get /user/airline/outputFastMedian25 outputFastMedian25
+
+
+
+#single and multithread benchmarking
+
+build:
+	cd st/;javac -classpath opencsv-3.6.jar:../ ChpPrice.java
+profiling:
+	pwd
+	sh ./benchmark
+Running:
+	cp ./st/ChpPrice.class ./
+	pwd
+	java  -cp ./st/opencsv-3.6.jar:./:./st/:./st/ChpPrice.class ChpPrice ~/Downlos/323.csv.gz 4 1 5
+
+
+
+
+# Automating the aws failed hence either perform manually with the below AWS CLI command
+# or through the console. Time only the console running phase.
+
+
+cluster:
+	aws emr create-cluster --name $(BenchMark) --release-label emr-4.3.0  --service-role EMR_DefaultRole --ec2-attributes InstanceProfile=EMR_EC2_DefaultRole --instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=m3.xlarge InstanceGroupType=CORE,InstanceCount=10,InstanceType=m3.xlarge
+
+
+#for executing mean in aws
+
+stepMean10:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT10),$(BUCKET_OUTPUT10),$(MEAN)
+
+cloudMean10:
+	aws s3 sync $(BUCKET_OUTPUT10) output
+
+stepMean20:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT20),$(BUCKET_OUTPUT20),$(MEAN)
+
+cloudMean20:
+	aws s3 sync $(BUCKET_OUTPUT20) output
+
+stepMean25:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT25),$(BUCKET_OUTPUT25),$(MEAN)
+
+cloudMean25:
+	aws s3 sync $(BUCKET_OUTPUT25) output
+
+
+#for executing median in aws
+
+stepMedian10:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT10),$(BUCKET_OUTPUT10),$(MEDIAN)
+
+cloudMedian10:
+	aws s3 sync $(BUCKET_OUTPUT10) output
+
+stepMedian20:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT20),$(BUCKET_OUTPUT20),$(MEDIAN)
+
+cloudMedian20:
+	aws s3 sync $(BUCKET_OUTPUT20) output
+
+stepMedian25:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT25),$(BUCKET_OUTPUT25),$(MEDIAN)
+
+cloudMedian25:
+	aws s3 sync $(BUCKET_OUTPUT25) output
+
+
+#for executing fast median in aws
+
+stepFastMedian10:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT10),$(BUCKET_OUTPUT10),$(FAST_MEDIAN)
+
+cloudFastMedian10:
+	aws s3 sync $(BUCKET_OUTPUT10) output
+
+stepFastMedian20:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT10),$(BUCKET_OUTPUT10),$(FAST_MEDIAN)
+
+cloudFastMedian20:
+	aws s3 sync $(BUCKET_OUTPUT20) output
+
+stepFastMedian25:
+	aws emr add-steps --$(CLUSTER_ID) --steps Type=CUSTOM_JAR,Name=$(APP),ActionOnFailure=CONTINUE,Jar=$(BUCKET_JAR),Args=$(BUKET_INPUT10),$(BUCKET_OUTPUT10),$(FAST_MEDIAN)
+
+cloudFastMedian25:
+	aws s3 sync $(BUCKET_OUTPUT25) output
+
+
+
+
+	
+
+

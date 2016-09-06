@@ -1,0 +1,44 @@
+
+Required Software
+------------------
+
+1) Python 2.x (if not installed please install)
+2) Hadoop 
+3) Able to run Bash script
+4) AWS CLI
+
+Configurations
+----------------
+1) AWS CLI configured to output JSON 
+aws configure command should output this.
+
+$aws configure
+AWS Access Key ID [****************5FXQ]: 
+AWS Secret Access Key [****************c+Wz]: 
+Default region name [us-east-1]: 
+Default output format [json]: 
+
+If Default output format is not in json, run $aws configure command and type json when you encounter "Default output format [text/xml]:"
+Default output format [text]:json
+
+Running the MR job on AWS
+-------------------------
+
+1) Make sure your hadoop path variables are set.
+2) Edit the make file in the root folder 
+
+BUCKET_PATH_INPUT = input path of your bucket ex=>s3://northeasternnaveenmr/all
+BUCKET_PATH_OUTPUT =  ouput path of your bucket ex=>s3://northeasternnaveenmr/output
+BUCKET_PATH_JAR = path of the bucket ex=>s3://northeasternnaveenmr/
+NAME_OF_CLASS = AirlineConnection
+NAME_OF_JAR = AirlineConnection.jar
+LOGS = path of the log files ex=>s3://northeasternnaveenmr/log
+
+3) Remove output file from the s3 storage.
+
+4) optional: if you want to build the jar file on your machine use (make Build) command from the root folder.
+
+5) make Step -- will run the MR job on AWS with 10 clusters m3.xlarge
+
+5) You can find the final output from the file "aggregate".
+

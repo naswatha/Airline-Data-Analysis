@@ -1,0 +1,26 @@
+mean10,mean20,mean25,median10,mean20,mean25
+
+Single Multi
+
+Files
+	st/ChpPrice.java	Main program
+	FlightPriceParser.java	Shared sanitizing class
+	323.csv.gz		Input file
+	Makefile		Makefile
+	benchmark		Profiling program
+How to build
+	1) go to main directory
+	2) make
+How to profiling
+	1) go to main directory
+	2) ./benchmark
+	3) You can find two files st/Result_Single and st/Result_Multi
+Format of result
+	Computing time of
+	Mean Price for 10files,	20 files,	25 files, Med Price for 10 files,	20 files,	25 files
+Explanation of Result
+	1) The difference between computing time of median and mean is relatively small.
+	2) Multi thread can almost double the speed, the limitation is the the number of CPU cores. 
+
+
+

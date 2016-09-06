@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- mapred-site.xml -->
+	<configuration>
+		<property>
+			<name>mapreduce.framework.name</name>
+			<value>yarn</value>
+		</property>
+	<property>
+	 <name>mapreduce.admin.user.env</name>
+	 <value>R_HOME=/usr/lib/R</value>
+	</property>
+	</configuration>
+	
+

@@ -1,0 +1,85 @@
+Required Software
+------------------
+
+1) Python 2.x (if not installed please install)
+2) Hadoop 
+3) Able to run Bash script
+4) AWS CLI
+5) install Random forest on R. by command -- install.packages('randomForest') 
+
+Configurations
+----------------
+1) AWS CLI configured to output JSON 
+aws configure command should output this.
+
+$aws configure
+AWS Access Key ID [****************5FXQ]: 
+AWS Secret Access Key [****************c+Wz]: 
+Default region name [us-east-1]: 
+Default output format [json]: 
+
+If Default output format is not in json, run $aws configure command and type json when you encounter "Default output format [text/xml]:"
+Default output format [text]:json
+
+Running the MR job on AWS
+-------------------------
+
+Step 1. Building Models
+-----------------------
+	compile source code
+	1) Set path variables for the local hadoop like $HADOOP and $PATH
+	cmd: make Build -- will build the class files and generate Jar file which will be uploaded to AWS.
+	
+	2) set up ssh keys
+		Make sure you have key pair for EC2 the .pem file and you know where it is in your local file system.
+
+	3) create cluster 
+		a) makefile will create a new bucket so choose your bucket name and enter in the constant "YourBucketName"
+		b) update the key pair file name in Makefile .pem filename to the constant "EC2KEYNAME"
+		c) cmd: make Cluster -- will create the cluster on AWS, start provisioning with Rserve and Rengine.
+		d) COPY cluster id to makefile constant "CLUSTER_ID"
+		
+	4) run steps
+		b) cmd: make Step -- this will run the mapreduce job on the created cluster. wait till the cluster completes the job.
+
+	5) download models from EC2 to local.
+		a) change the security policy for slave nodes, enable to port 22 access from anywhere
+		-- Go to the aws console click on the EC2 link form the main dashboard you will be directed to EC2 dashboard.
+		-- on the left section Network and security group section click on "Security Group"
+		-- Select the slave nodes and click on inbound tab and click on edit.
+		-- Edit inbound rules window -- Add Rule select SSH enable port 22  and source anywhere. 
+		-- save 
+
+		b) once all the above steps are complete run the below shell command 
+		-- cmd-- ./bin/cpData.sh Cluster_ID full_path_to_your_key 
+		-- ex. ./bin/cpData.sh j-211EROTDPLCYZ ~/Downloads/sujith.pem
+		-- type yes when prompt from the console.
+		It will copy all the models to models to the root folder.
+
+		c) please terminate the cluster once all the files are copies.
+		-- using this cmd.
+		-- aws emr terminate-clusters --cluster-ids j-211EROTDPLCYZ
+		
+		
+Step 2. Split the test data
+---------------------------
+
+	1) 98redacted.csv.gz should be available, downloaded and stored in local filesystem.
+	2) update the constant REDACTED_FILE_PATH to the fully qualified file path of 98redacted.csv.gz
+	Command: make divide
+	
+	Result:	make divide command will compile and run the java files to create the DivideDataset folder automatically and the files are stored in DivideDataset folder which is automatically created by the make divide.
+
+Step 3. Prediction
+------------------	
+	1) cmd: make Predict -- this will run the test data on the R model and provide the result file.
+
+
+Step 4. Build Confusion Matrix
+-------------------------------
+	1) 98validate.csv.gz should be available, downloaded and stored in local filesystem.
+	2) update the constant VALIDATE_FILE_PATH to the fully qualified file path of 98validate.csv.gz
+	3) cmd: make confusion -- This will output the confusion matrix with accuracy.
+	
+
+

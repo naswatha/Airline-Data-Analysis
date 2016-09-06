@@ -1,0 +1,16 @@
+Build:
+	make
+Run example
+	make Running
+	In the Makefile, there is a brief description of arguments
+Run benchmark
+	./benchmark
+	See the result in the a file in st folder "Result"
+Arguments        
+	java  -cp ../:opencsv-3.6.jar:./ ChpPrice ~/Downloads/323.csv.gz $thread $type $i
+        $thread is the size of threads
+        $type=1 means calculate mean price
+        type=2 mneas cacuulate median price
+        $i means how much time you want to load the .gz file. Professor want us to make graph of Time with the size of input, you can use this to change the size of input.
+        java  -cp ../:opencsv-3.6.jar:./ ChpPrice ~/Downloads/323.csv.gz 4 1 5
+        load 323.csv.gz 5 times use 4 threads and calculate mean price for every month and carrier

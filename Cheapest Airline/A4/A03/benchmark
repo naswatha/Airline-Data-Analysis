@@ -1,0 +1,57 @@
+function benchmark {
+	for i in `seq 10 10 30`;
+	do
+                if [ $i -eq 30 ]
+                	then export i=25;
+                fi
+		ARRAY[$i]=0
+		for j in `seq 1 1`;
+		do
+			if [ $i -eq 30 ]
+			then export i=25;
+			fi
+			export begin_time=`date +%s`
+			java  -cp ../:opencsv-3.6.jar:./ ChpPrice ../323.csv.gz $thread $type $i
+			export end_time=`date +%s`
+			((ARRAY[$i]=ARRAY[$i]+$end_time-$begin_time))
+			ARRAY[i]=`echo 0 ${ARRAY[i]} | xargs printf "%.*f\n" $p`
+			#echo ${ARRAY[i]} 
+		done
+		ARRAY[$i]=`echo ${ARRAY[$i]}/1 | bc -l`
+		ARRAY[$i]=`echo 0 ${ARRAY[$i]} | xargs printf "%.*f\n" $p`
+		#echo ${ARRAY[$i]}
+		#echo "$type,$i,${ARRAY[$i]}" >> Result
+	done
+}
+
+cd st/
+declare -a ARRAY
+#echo "Type,Thread,Input,Time" > Result
+export type=1
+#1 thread input 1-25
+#Mean Price
+export thread=1
+benchmark
+export SingleMean10=${ARRAY[10]}
+export SingleMean20=${ARRAY[20]}
+export SingleMean25=${ARRAY[25]}
+export type=2
+benchmark
+export SingleMedian10=${ARRAY[10]}
+export SingleMedian20=${ARRAY[20]}
+export SingleMedian25=${ARRAY[25]}
+#4 threads input 1-25
+export type=1
+export thread=4
+benchmark
+export MultiMean10=${ARRAY[10]}
+export MultiMean20=${ARRAY[20]}
+export MultiMean25=${ARRAY[25]}
+export type=2
+benchmark
+export MultiMedian10=${ARRAY[10]}
+export MultiMedian20=${ARRAY[20]}
+export MultiMedian25=${ARRAY[25]}
+echo "$SingleMean10,$SingleMean20,$SingleMean25,$SingleMedian10,$SingleMedian20,$SingleMedian25" > Result_Single
+echo "$MultiMean10,$MultiMean20,$MultiMean25,$MultiMedian10,$MultiMedian20,$MultiMedian25" > Result_Multi
+ 
